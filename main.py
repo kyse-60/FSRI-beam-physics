@@ -5,10 +5,10 @@ from scipy.optimize import brentq
 #-----------------CONSTANTS-----------------------
 L = 100 # length of the beam 
 #-----------------INPUTS---------------------------
-F = 5 # lateral force 
+F = 1000 # lateral force 
 E = 3 # modulus of elasticity 
-a = 2 # side length of the beam penpendicular to the force
-b = 2 # other side length of the beam parrallel to the force
+a = 1 # side length of the beam penpendicular to the force
+b = 1 # other side length of the beam parrallel to the force
 
 I = (a * b^3)/ 12
 
