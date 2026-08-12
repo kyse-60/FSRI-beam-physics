@@ -4,17 +4,17 @@ from scipy.integrate import quad
 from scipy.optimize import brentq
 import scipy.integrate as integrate
 #-----------------CONSTANTS-----------------------
-L = 1 # length of the beam (m)
+L = 0.3 # length of the beam (m)
 #-----------------INPUTS---------------------------
-F = 100 # downwards force (N) 1-100
-E = 3 # Young's modulus (GPa) 50-300
-a = 0.01 # side length of the beam perpendicular to the force (m) 0.005-0.02
-b = 0.01 # side length of the beam parallel to the force (m) 0.005-0.02
+F = 3.92 # downwards force (N) 1-100
+E = 200 # Young's modulus (GPa) 50-300
+a = 0.0304 # side length of the beam perpendicular to the force (m) 0.005-0.02
+b = 0.00078 # side length of the beam parallel to the force (m) 0.005-0.02
 
 I = (a * b **3)/ 12 # bending inertia (m^4)
 
-alpha = (F * L ** 2)/ (2 * E * I) #non-dimensional load parameter
-
+alpha = (F * L ** 2)/ (2 * E * 10**9 * I) #non-dimensional load parameter
+print(alpha)
 
 #Setting up functions:
 def function(phi0):
