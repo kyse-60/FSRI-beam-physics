@@ -46,4 +46,11 @@ for f in range(F):
     for e in range(E):
         for a in range(A):
             for b in range(B):
-                
+                alpha = alpha(f,e,a,b)
+                0(alpha)
+                phipart = phi0/100 
+                phival =0
+                while phival <= phi0:
+
+
+#we can do like the series f,e,a,b, x1,x2=
