@@ -4,20 +4,21 @@ from scipy.integrate import quad
 from scipy.optimize import brentq
 import scipy.integrate as integrate
 #-----------------CONSTANTS-----------------------
-L = 0.3 # length of the beam (m)
+L = 1 # length of the beam (m)
 #-----------------INPUTS---------------------------
-F = 3.92 # downwards force (N) 1-100
-E = 200 # Young's modulus (GPa) 50-300
-a = 0.0304 # side length of the beam perpendicular to the force (m) 0.005-0.02
-b = 0.00078 # side length of the beam parallel to the force (m) 0.005-0.02
+F = 100 # downwards force (N) 10-100
+E = 100 * 10**9 # Young's modulus (GPa) 100-300
+a = 0.005 # side length of the beam perpendicular to the force (m) 0.005-0.02
+b = 0.005 # side length of the beam parallel to the force (m) 0.005-0.02
 
 I = (a * b **3)/ 12 # bending inertia (m^4)
 
-alpha = (F * L ** 2)/ (2 * E * 10**9 * I) #non-dimensional load parameter
+alpha = (F * L ** 2)/ (2 * E * I) #non-dimensional load parameter
+print(alpha)
 
-def alpha(F,E,a,b):
-    I = (a * b **3)/ 12 # bending inertia (m^4)
-    return (F * L ** 2)/ (2 * E * 10**9 * I) #non-dimensional load parameter
+# def alpha(F,E,a,b):
+#     I = (a * b **3)/ 12 # bending inertia (m^4)
+#     return (F * L ** 2)/ (2 * E * I) #non-dimensional load parameter
 
 #Setting up functions:
 def function(phi0):
@@ -28,6 +29,7 @@ def solve_phi0(alpha):
     return brentq(lambda p: function(p) - 2*np.sqrt(alpha), 1e-9, np.pi/2 - 1e-9)
 
 phi0 = solve_phi0(alpha)
+print(phi0)
 
 def x(phi):
     constant = np.sqrt((2* E * I)/F)
@@ -42,15 +44,15 @@ def y(phi):
 
 print(f'x max: {x(phi0)} y max: {y(phi0)}')
 
-for f in range(F):
-    for e in range(E):
-        for a in range(A):
-            for b in range(B):
-                alpha = alpha(f,e,a,b)
-                0(alpha)
-                phipart = phi0/100 
-                phival =0
-                while phival <= phi0:
+# for f in range(F):
+#     for e in range(E):
+#         for a in range(A):
+#             for b in range(B):
+#                 alpha = alpha(f,e,a,b)
+#                 0(alpha)
+#                 phipart = phi0/100 
+#                 phival =0
+#                 while phival <= phi0:
 
 
 #we can do like the series f,e,a,b, x1,x2=
