@@ -3,6 +3,7 @@ import numpy as np
 from scipy.integrate import quad
 from scipy.optimize import brentq
 import scipy.integrate as integrate
+import pandas as pd
 #-----------------CONSTANTS-----------------------
 L = 0.3 # length of the beam (m)
 #-----------------INPUTS---------------------------
@@ -41,16 +42,18 @@ def y(phi):
     return 0 -val 
 
 print(f'x max: {x(phi0)} y max: {y(phi0)}')
-
+df = pd.DataFrame()
 for f in range(F):
+    s = pd.Series()
+    s.loc['F'] = f
     for e in range(E):
+        s.loc['E'] = e
         for a in range(A):
+            s.loc['width'] = a
             for b in range(B):
+                s.loc['length'] = a
                 alpha = alpha(f,e,a,b)
                 0(alpha)
                 phipart = phi0/100 
                 phival =0
                 while phival <= phi0:
-
-
-#we can do like the series f,e,a,b, x1,x2=
