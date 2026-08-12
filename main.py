@@ -15,6 +15,9 @@ I = (a * b **3)/ 12 # bending inertia (m^4)
 
 alpha = (F * L ** 2)/ (2 * E * I) #non-dimensional load parameter
 
+def alpha(F,E,a,b):
+    I = (a * b **3)/ 12 # bending inertia (m^4)
+    return (F * L ** 2)/ (2 * E * I) #non-dimensional load parameter
 
 #Setting up functions:
 def function(phi0):
@@ -39,4 +42,8 @@ def y(phi):
 
 print(f'x max: {x(phi0)} y max: {y(phi0)}')
 
-#for f in range F
+for f in range(F):
+    for e in range(E):
+        for a in range(A):
+            for b in range(B):
+                
