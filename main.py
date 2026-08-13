@@ -82,7 +82,7 @@ Notes:
 - not a problem to be equidistant --> if it is equidistant it can overfit
 - know what quad does 
 - know what brentq does
-- try hpc
+- try HPC
 - randomly pick some cases and visualize (maybe look at interactive)
 - graph could be just F change on the same graph 
 - num should be diff for each
@@ -91,29 +91,20 @@ Notes:
 - another way than the paper: see nb
 - record time in both methods 
 - sklearn
+
 - next week: 
 - code more general 
-- learn waht optimizer we already used 
-- implement the new eq as a seperate code 
-- literature review learn whats happening and understand physcis-informed nueral netowrk (Advantage and disadvantage of this and the other optimizer we have )--> so go thru diff optimizers and slide
-- newton rafson s 
-- set up and get comfortable with HPC 
+- learn what optimizer we already used 
+- implement the new eq as a seperate code
+- implement visualizations 
 
-
-
-
+- newton rafson  so go thru diff optimizers and slides 
 - can use hybrid
-- backprpogationn is a larger term for gradient descent 
-- we will seperate into training validation and test 
+- backpropgation is a larger term for gradient descent 
+- we will separate into training validation and test 
 - try generating max and min of alpha and run through that and see what the time difference is since all alphas have the same x and y 
-- in the version we have right now --> might as wel have various Ls
+- in the version we have right now --> might as well have various Ls
 - num being 5 is a good amount 
-'''
 
-
-'''
-List of Things to Do:
-1) reorganize our code to include num variations, vary L, vary s
-
-n) Understand what quad and brentq are 
+- learn whats happening and understand physcis-informed nueral netowrk literature review (Advantage and disadvantage of this and the other optimizer we have )-->
 '''
