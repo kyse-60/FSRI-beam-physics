@@ -7,7 +7,7 @@ import pandas as pd
 import warnings
 warnings.filterwarnings('ignore', category=RuntimeWarning)
 #-----------------CONSTANTS-----------------------
-L = 1 # length of the beam (m)
+L = 1 # length of the beam (m) [0.1, 2]
 #-----------------INPUTS---------------------------
 F = [10,100] # downwards force (N) 10-100
 E = [100 * 10**9, 300 * 10**9] # Young's modulus (GPa) 100-300
@@ -49,7 +49,7 @@ def y(phi,e,i,g):
     return 0 -val 
 
 # print(f'x max: {x(phi0)} y max: {y(phi0)}')
-num = 10
+num = 100
 df = pd.DataFrame()
 for f in np.arange(F[0], F[1], (F[1]-F[0])/num):
     s = pd.Series()
@@ -63,7 +63,7 @@ for f in np.arange(F[0], F[1], (F[1]-F[0])/num):
                 alph = alpha(f,e,a,b)
                 I = inertia(a,b)
                 phi0 = solve_phi0(alph)
-                phipart = phi0/100 
+                phipart = phi0/100  # make this 10 points instead --> for future random points hmmmm
                 phival = 2 * (phi0/100)
                 index = 0
                 while phival <= phi0:
@@ -74,5 +74,33 @@ for f in np.arange(F[0], F[1], (F[1]-F[0])/num):
                 df = pd.concat([df, s.to_frame().T])
 
 print(df)
-df.to_csv('outputagain.csv', index= False)
-                
+df.to_csv('output100.csv', index= False)
+
+
+'''
+Notes:
+- not a problem to be equidistant --> if it is equidistant it can overfit
+- know what quad does 
+- know what brentq does
+- try hpc
+- randomly pick some cases and visualize (maybe look at interactive)
+- graph could be just F change on the same graph 
+- num should be diff for each
+- want to have control over the number of poitns we generate 
+- use a package to save the runtime 
+- another way than the paper: see nb
+- record time in both methods 
+- sklearn
+- next week: 
+- code more general 
+- learn waht optimizer we already used 
+- implement the new eq as a seperate code 
+- learn whats happening and understand physcis-informed nueral netowrk 
+- literature review newton rafson (Advantage and disadvantage of this and the other optimizer we have )--> so go thru diff optimizers and slides 
+- can use hybrid
+- backprpogationn is a larger term for gradient descent 
+- we will seperate into training validation and test 
+- try generating max and min of alpha and run through that and see what the time difference is since all alphas have the same x and y 
+- in the version we have right now --> might as wel have various Ls
+- num being 5 is a good amount 
+'''
