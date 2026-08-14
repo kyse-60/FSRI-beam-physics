@@ -1,3 +1,4 @@
+# THIS CODE IS OUTDATED SEE generateV!.py FOR THE NEWER VERSION --> THIS DOES NOT INCLUDE TIMESTAMPS AND WILL NOT RUN ANYTHING
 # IMPORTANT IMPORTS!! 
 import numpy as np 
 from scipy.integrate import quad
@@ -69,4 +70,4 @@ def Gen_data(num_f,num_e,num_b,num_h,num_L,nodes, name ="output"):
     print(df)
 
 
-Gen_data(5,5,5,5,5,10,"output")
+# Gen_data(5,5,5,5,5,10,"output")

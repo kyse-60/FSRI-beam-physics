@@ -7,22 +7,17 @@ import pandas as pd
 import warnings
 warnings.filterwarnings('ignore', category=RuntimeWarning)
 #-----------------CONSTANTS-----------------------
-L = 1 # length of the beam (m) [0.1, 2]
 #-----------------INPUTS---------------------------
 F = [10,100] # downwards force (N) 10-100
 E = [100 * 10**9, 300 * 10**9] # Young's modulus (GPa) 100-300
-A = [0.005,0.02] # side length of the beam perpendicular to the force (m) 0.005-0.02
-B = [0.005,0.02] # side length of the beam parallel to the force (m) 0.005-0.02
-
-# I = (a * b **3)/ 12 # bending inertia (m^4)
+B = [0.005,0.02] # side length of the beam perpendicular to the force (m) 0.005-0.02
+H = [0.005,0.02] # side length of the beam parallel to the force (m) 0.005-0.02
+L = [0.1,2] # length of the beam (m) [0.1, 2]
 
 def inertia(a,b):
     return (a * b **3)/ 12
 
-# alpha = (F * L ** 2)/ (2 * E * I) #non-dimensional load parameter
-# print(alpha)
-
-def alpha(F,E,a,b):
+def alpha(F,E,a,b,L):
     I = (a * b **3)/ 12 # bending inertia (m^4)
     return (F * L ** 2)/ (2 * E * I) #non-dimensional load parameter
 
@@ -34,10 +29,7 @@ def function(phi0):
 def solve_phi0(alpha):
     return brentq(lambda p: function(p) - 2*np.sqrt(alpha), 1e-9, np.pi/2 - 1e-9)
 
-# phi0 = solve_phi0(alpha)
-# print(phi0)
-
-def x(phi,e,i,f):
+def x(phi,e,i,f,L):
     constant = np.sqrt((2* e * i)/f)
     val = constant * (np.sqrt(np.sin(phi0)) - np.sqrt(np.sin(phi0) - np.sin(phi)))
     return L - val
@@ -46,74 +38,35 @@ def y(phi,e,i,g):
     constant = np.sqrt((e*i)/(2*g))
     f = lambda theta: (np.sin(theta)/ np.sqrt(np.sin(phi0)- np.sin(theta)))
     val = constant * integrate.quad(f,0,phi)[0]
-    return 0 -val 
+    return 0 -val
 
-# print(f'x max: {x(phi0)} y max: {y(phi0)}')
-num = 100
-df = pd.DataFrame()
-for f in np.arange(F[0], F[1], (F[1]-F[0])/num):
-    s = pd.Series()
-    s.loc['F'] = f
-    for e in np.arange(E[0], E[1], (E[1]-E[0])/num):
-        s.loc['E'] = e
-        for a in np.arange(A[0], A[1], (A[1]-A[0])/num):
-            s.loc['width'] = a
-            for b in np.arange(B[0], B[1], (B[1]-B[0])/num):
-                s.loc['length'] = a
-                alph = alpha(f,e,a,b)
-                I = inertia(a,b)
-                phi0 = solve_phi0(alph)
-                phipart = phi0/100  # make this 10 points instead --> for future random points hmmmm
-                phival = 2 * (phi0/100)
-                index = 0
-                while phival <= phi0:
-                    coord = (x(phival,e,I,f), y(phival,e,I,f))
-                    s.loc['coord' + str(index)] = coord
-                    phival += phipart
-                    index += 1
-                df = pd.concat([df, s.to_frame().T])
-
-print(df)
-df.to_csv('output100.csv', index= False)
-
-
-'''
-Notes:
-- not a problem to be equidistant --> if it is equidistant it can overfit
-- know what quad does 
-- know what brentq does
-- try hpc
-- randomly pick some cases and visualize (maybe look at interactive)
-- graph could be just F change on the same graph 
-- num should be diff for each
-- want to have control over the number of poitns we generate 
-- use a package to save the runtime 
-- another way than the paper: see nb
-- record time in both methods 
-- sklearn
-- next week: 
-- code more general 
-- learn waht optimizer we already used 
-- implement the new eq as a seperate code 
-- literature review learn whats happening and understand physcis-informed nueral netowrk (Advantage and disadvantage of this and the other optimizer we have )--> so go thru diff optimizers and slide
-- newton rafson s 
-- set up and get comfortable with HPC 
+def Gen_data(num_f,num_e,num_b,num_h,num_L,nodes, name ="output"):
+    df = pd.DataFrame()
+    for f in np.arange(F[0], F[1], (F[1]-F[0])/num_f):
+        s = pd.Series()
+        s.loc['F'] = f
+        for e in np.arange(E[0], E[1], (E[1]-E[0])/num_e):
+            s.loc['E'] = e
+            for b in np.arange(B[0], B[1], (B[1]-B[0])/num_b):
+                s.loc['base'] = b
+                for h in np.arange(H[0], H[1], (H[1]-H[0])/num_h):
+                    s.loc['height'] = h
+                    for l in np.arange(L[0], L[1], (L[1]-L[0])/num_L):
+                        s.loc['length'] = l
+                        alph = alpha(f,e,b,h,l)
+                        I = inertia(b,h)
+                        phi0 = solve_phi0(alph)
+                        phipart = phi0/nodes  # for future: random points
+                        phival = 2 * (phi0/nodes)
+                        index = 0
+                        while phival <= phi0:
+                            coord = (x(phival,e,I,f,l), y(phival,e,I,f))
+                            s.loc['coord' + str(index)] = coord
+                            phival += phipart
+                            index += 1
+                        df = pd.concat([df, s.to_frame().T])
+    df.to_csv( name + ".csv", index= False)
+    print(df)
 
 
-
-
-- can use hybrid
-- backprpogationn is a larger term for gradient descent 
-- we will seperate into training validation and test 
-- try generating max and min of alpha and run through that and see what the time difference is since all alphas have the same x and y 
-- in the version we have right now --> might as wel have various Ls
-- num being 5 is a good amount 
-'''
-
-
-'''
-List of Things to Do:
-1) reorganize our code to include num variations, vary L, vary s
-
-n) Understand what quad and brentq are 
-'''
+Gen_data(5,5,5,5,5,10,"output")
