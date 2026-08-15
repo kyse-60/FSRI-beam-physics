@@ -1,3 +1,4 @@
+# THIS CODE IS OUTDATED SEE generateV!.py FOR THE NEWER VERSION --> THIS DOES NOT INCLUDE TIMESTAMPS AND WILL NOT RUN ANYTHING
 # IMPORTANT IMPORTS!! 
 import numpy as np 
 from scipy.integrate import quad
@@ -14,13 +15,8 @@ B = [0.005,0.02] # side length of the beam perpendicular to the force (m) 0.005-
 H = [0.005,0.02] # side length of the beam parallel to the force (m) 0.005-0.02
 L = [0.1,2] # length of the beam (m) [0.1, 2]
 
-# I = (a * b **3)/ 12 # bending inertia (m^4)
-
 def inertia(a,b):
     return (a * b **3)/ 12
-
-# alpha = (F * L ** 2)/ (2 * E * I) #non-dimensional load parameter
-# print(alpha)
 
 def alpha(F,E,a,b,L):
     I = (a * b **3)/ 12 # bending inertia (m^4)
@@ -33,9 +29,6 @@ def function(phi0):
 
 def solve_phi0(alpha):
     return brentq(lambda p: function(p) - 2*np.sqrt(alpha), 1e-9, np.pi/2 - 1e-9)
-
-# phi0 = solve_phi0(alpha)
-# print(phi0)
 
 def x(phi,e,i,f,L):
     constant = np.sqrt((2* e * i)/f)
@@ -64,7 +57,7 @@ def Gen_data(num_f,num_e,num_b,num_h,num_L,nodes, name ="output"):
                         alph = alpha(f,e,b,h,l)
                         I = inertia(b,h)
                         phi0 = solve_phi0(alph)
-                        phipart = phi0/nodes  # for future random points hmmmm
+                        phipart = phi0/nodes  # for future: random points
                         phival = 2 * (phi0/nodes)
                         index = 0
                         while phival <= phi0:
@@ -77,36 +70,4 @@ def Gen_data(num_f,num_e,num_b,num_h,num_L,nodes, name ="output"):
     print(df)
 
 
-Gen_data(5,5,5,5,5,10,"output")
-
-'''
-Notes:
-- not a problem to be equidistant --> if it is equidistant it can overfit
-- know what quad does 
-- know what brentq does
-- try HPC
-- randomly pick some cases and visualize (maybe look at interactive)
-- graph could be just F change on the same graph 
-- num should be diff for each
-- want to have control over the number of poitns we generate 
-- use a package to save the runtime 
-- another way than the paper: see nb
-- record time in both methods 
-- sklearn
-
-- next week: 
-- code more general 
-- learn what optimizer we already used 
-- implement the new eq as a seperate code
-- implement visualizations 
-
-- newton rafson  so go thru diff optimizers and slides 
-- can use hybrid
-- backpropgation is a larger term for gradient descent 
-- we will separate into training validation and test 
-- try generating max and min of alpha and run through that and see what the time difference is since all alphas have the same x and y 
-- in the version we have right now --> might as well have various Ls
-- num being 5 is a good amount 
-
-- learn whats happening and understand physcis-informed nueral netowrk literature review (Advantage and disadvantage of this and the other optimizer we have )-->
-'''
+# Gen_data(5,5,5,5,5,10,"output")
