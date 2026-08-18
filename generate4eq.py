@@ -6,7 +6,7 @@ from scipy.optimize import root_scalar
 from time import perf_counter
 
 
-F = [10,100] # downwards force (N) 10-100
+F = [100,1000] # downwards force (N) 10-100
 E = [100 * 10**9, 300 * 10**9] # Young's modulus (GPa) 100-300
 B = [0.01,0.02] # side length of the beam perpendicular to the force (m) 0.005-0.02
 H = [0.01,0.02] # side length of the beam parallel to the force (m) 0.005-0.02
@@ -67,7 +67,7 @@ def Gen_data(num_f,num_e,num_b,num_h,num_L,nodes,name="output4eq"):
                             n = np.linspace(0,length,nodes)[index]
                             x_coord = solution.sol(n)[2]
                             y_coord = solution.sol(n)[3]
-                            coord = (float(x_coord), float(-1.0 *  y_coord))
+                            coord = (float(x_coord), float(y_coord))
                             ser.loc['coord' + str(index)] = coord
                         end = perf_counter()
                         time_beam = end - start
