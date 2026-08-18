@@ -1,15 +1,17 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import pandas as pd
 from scipy.integrate import solve_ivp
 from scipy.optimize import root_scalar
+from time import perf_counter
 
 
-F = 4 # downward force (N)
-E = 200 * 10**9 # Young's modulus (Pa)
-L = 0.3 # length of beam (m)
-B = 0.0304 # base of beam cross-section (m)
-H = 0.00078 # height of beam cross-section (m)
-I = (B * H**3)/12 # second moment of area (m^4)
+F = [10,100] # downwards force (N) 10-100
+E = [100 * 10**9, 300 * 10**9] # Young's modulus (GPa) 100-300
+B = [0.01,0.02] # side length of the beam perpendicular to the force (m) 0.005-0.02
+H = [0.01,0.02] # side length of the beam parallel to the force (m) 0.005-0.02
+L = [0.2,1] # length of the beam (m) [0.1, 2]
+#I = (B * H**3)/12 # second moment of area (m^4)
 
 
 def eq_system(s, matrix, F, E, I): # defines the system of equations and takes d/ds of all four items
@@ -41,21 +43,52 @@ def residual(k0, L, F, E, I): # gets the difference between k(L) for the guessed
     kL = shoot(k0, L, F, E, I)[0] # [0] since we don't care about solution until the guess for k0 is accurate
     return kL
 
-result = root_scalar(residual, args=(L, F, E, I), bracket=[0.0, 5.0], method='brentq') # uses Brent's root finder method to narrow down on the value of k0
 
-real_k0 = result.root
-kL, solution = shoot(real_k0, L, F, E, I)
+def Gen_data(num_f,num_e,num_b,num_h,num_L,nodes,name="output4eq"):
+    df = pd.DataFrame()
+    bigstart = perf_counter()    
+    for force in np.linspace(F[0], F[1], num_f):
+        ser = pd.Series()
+        ser.loc['F'] = force
+        for elastic in np.linspace(E[0], E[1], num_e):
+            ser.loc['E'] = elastic
+            for base in np.linspace(B[0], B[1], num_b):
+                ser.loc['base'] = base
+                for height in np.linspace(H[0], H[1], num_h):
+                    ser.loc['height'] = height
+                    for length in np.linspace(L[0], L[1], num_L):
+                        ser.loc['length'] = length
+                        start = perf_counter()
+                        inertia = (base * height**3)/12
+                        result = root_scalar(residual, args=(length, force, elastic, inertia), bracket=[0.0, 5.0], method='brentq') # uses Brent's root finder method to narrow down on the value of k0
+                        real_k0 = result.root
+                        kL, solution = shoot(real_k0, length, force, elastic, inertia)
+                        for index in range(nodes):
+                            n = np.linspace(0,length,nodes)[index]
+                            x_coord = solution.sol(n)[2]
+                            y_coord = solution.sol(n)[3]
+                            coord = (float(x_coord), float(y_coord))
+                            ser.loc['coord' + str(index)] = coord
+                        end = perf_counter()
+                        time_beam = end - start
+                        ser.loc['time'] = time_beam
+                        df = pd.concat([df, ser.to_frame().T])
+    bigend = perf_counter()
+    bigtime = bigend - bigstart
+    df.to_csv(name + "-time-" + str(bigtime) + "s.csv", index= False)
 
-s = np.linspace(0, L, 20)
-
-x = solution.sol(s)[2]
-y = solution.sol(s)[3]
+Gen_data(5,5,5,5,5,10)
 
 
-plt.figure()
-plt.plot(x, -y)
-plt.xlabel("x (m)")
-plt.ylabel("y (m)")
-plt.title("Beam Deflection")
-plt.grid(True)
-plt.show()
+
+# result = root_scalar(residual, args=(L, F, E, I), bracket=[0.0, 5.0], method='brentq') # uses Brent's root finder method to narrow down on the value of k0
+
+# real_k0 = result.root
+# kL, solution = shoot(real_k0, L, F, E, I)
+
+# s = np.linspace(0, L, 10)
+
+# x = solution.sol(s)[2]
+# y = solution.sol(s)[3]
+
+# print(x, y)
