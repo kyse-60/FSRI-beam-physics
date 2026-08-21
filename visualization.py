@@ -2,13 +2,12 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import ast
 
-# FILE = "outputValpha(100)-time-1.8745821999909822s.csv"
-# FILE = "output4eq-time-19.17769340000814s.csv"
-FILE = "output4eq-time-28.227802200010046s.csv"
-# FILE = "outputV1.1-time-18.980601800023578s.csv"
+FILE = "output4eq-time-37.722191700013354s.csv"
+# FILE = "outputV1.2-time-19.283929500030354s.csv"
+# FILE = "outputValpha(100).3-time-0.8944517000345513s.csv"
 type = "4eq" #regular, alpha, 4eq
-FIGNAME = "trial4eq.1.jpg"
-SAMPLES = 4
+FIGNAME = f'lala{type}.3.jpg'
+SAMPLES = 6
 
 def makeplot(filename, figname,samples):
     df = pd.read_csv(filename)

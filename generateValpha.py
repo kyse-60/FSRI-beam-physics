@@ -9,11 +9,11 @@ import warnings
 warnings.filterwarnings('ignore', category=RuntimeWarning)
 #-----------------CONSTANTS-----------------------
 #-----------------INPUTS---------------------------
-F = [10,100] # downwards force (N) 10-100
+F = [100,1000] # downwards force (N) 10-100
 E = [100 * 10**9, 300 * 10**9] # Young's modulus (GPa) 100-300
-B = [0.005,0.02] # side length of the beam perpendicular to the force (m) 0.005-0.02
-H = [0.005,0.02] # side length of the beam parallel to the force (m) 0.005-0.02
-L = [0.1,2] # length of the beam (m) [0.1, 2]
+B = [0.01,0.02] # side length of the beam perpendicular to the force (m) 0.005-0.02
+H = [0.01,0.02] # side length of the beam parallel to the force (m) 0.005-0.02
+L = [0.2,1] # length of the beam (m) [0.1, 2]
 
 def inertia(a,b):
     return (a * b **3)/ 12
@@ -39,8 +39,8 @@ def s(phi,alpha,phi0):
 def xratio(phi,alpha,phi0):
     constant = 1/ np.sqrt(alpha)
     val = constant * (np.sqrt(np.sin(phi0)) - np.sqrt(np.sin(phi0) - np.sin(phi)))
-    slen = s(phi,alpha,phi0)
-    return slen - val
+    #slen = s(phi,alpha,phi0)
+    return val
 
 def yratio(phi,alpha,phi0):
     constant = 1/(2 * np.sqrt(alpha))
@@ -63,7 +63,10 @@ def Gen_data(nodes,numiter, name ="output"):
         s.loc["alpha"] = alph
         phi0 = solve_phi0(alph)
         for index in range(nodes +1):
-            phival = phi0 * index/nodes
+            if index == nodes:
+                phival = phi0
+            else:
+                phival = phi0 * index/nodes
             coord = (float(xratio(phival,alph,phi0)), float(yratio(phival,alph,phi0)))
             s.loc['coord' + str(index)] = coord
         end = perf_counter()
@@ -75,4 +78,4 @@ def Gen_data(nodes,numiter, name ="output"):
     df.to_csv(name + "-time-" + str(bigtime) + "s.csv", index= False)
     print(df)
 
-Gen_data(10,100,"outputValpha(100)")
+Gen_data(10,100,"outputValpha(100).3")

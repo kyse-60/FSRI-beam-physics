@@ -9,11 +9,11 @@ import warnings
 warnings.filterwarnings('ignore', category=RuntimeWarning)
 #-----------------CONSTANTS-----------------------
 #-----------------INPUTS---------------------------
-F = [10,100] # downwards force (N) 10-100
+F = [100,1000] # downwards force (N) 10-100
 E = [100 * 10**9, 300 * 10**9] # Young's modulus (GPa) 100-300
-B = [0.005,0.02] # side length of the beam perpendicular to the force (m) 0.005-0.02
-H = [0.005,0.02] # side length of the beam parallel to the force (m) 0.005-0.02
-L = [0.1,2] # length of the beam (m) [0.1, 2]
+B = [0.01,0.02] # side length of the beam perpendicular to the force (m) 0.005-0.02
+H = [0.01,0.02] # side length of the beam parallel to the force (m) 0.005-0.02
+L = [0.2,1] # length of the beam (m) [0.1, 2]
 
 def inertia(a,b):
     return (a * b **3)/ 12
@@ -30,37 +30,37 @@ def function(phi0):
 def solve_phi0(alpha):
     return brentq(lambda p: function(p) - 2*np.sqrt(alpha), 1e-9, np.pi/2 - 1e-9)
 
-def s(phi,e,i,g,phi0):
-    constant = np.sqrt((e*i)/(2*g))
-    f = lambda theta: (1/ np.sqrt(np.sin(phi0)- np.sin(theta)))
-    val = constant * integrate.quad(f,0,phi)[0]
-    return val
+# def s(phi,e,i,g,phi0):
+    # constant = np.sqrt((e*i)/(2*g))
+    # f = lambda theta: (1/ np.sqrt(np.sin(phi0)- np.sin(theta)))
+    # val = constant * integrate.quad(f,0,phi)[0]
+    # return val
 
 def x(phi,e,i,f,phi0):
     constant = np.sqrt((2* e * i)/f)
-    val = constant * (np.sqrt(np.sin(phi0)) - np.sqrt(np.sin(phi0) - np.sin(phi)))
-    slen = s(phi,e,i,f,phi0)
-    return slen - val
+    val = constant * (np.sqrt(np.sin(phi0)) - np.sqrt(max(0.0, np.sin(phi0) - np.sin(phi))))
+    #slen = s(phi,e,i,f,phi0)
+    return val
 
 def y(phi,e,i,g,phi0):
     constant = np.sqrt((e*i)/(2*g))
-    f = lambda theta: (np.sin(theta)/ np.sqrt(np.sin(phi0)- np.sin(theta)))
+    f = lambda theta: (np.sin(theta)/ np.sqrt(max(0.0, np.sin(phi0)- np.sin(theta))))
     val = constant * integrate.quad(f,0,phi)[0]
     return 0 -val
 
 def Gen_data(num_f,num_e,num_b,num_h,num_L,nodes, name ="output"):
     df = pd.DataFrame()
     bigstart = perf_counter()
-    for f in np.arange(F[0], F[1], (F[1]-F[0])/num_f):
+    for f in np.linspace(F[0], F[1], num_f):
         s = pd.Series()
         s.loc['F'] = f
-        for e in np.arange(E[0], E[1], (E[1]-E[0])/num_e):
+        for e in np.linspace(E[0], E[1], num_e):
             s.loc['E'] = e
-            for b in np.arange(B[0], B[1], (B[1]-B[0])/num_b):
+            for b in np.linspace(B[0], B[1], num_b):
                 s.loc['base'] = b
-                for h in np.arange(H[0], H[1], (H[1]-H[0])/num_h):
+                for h in np.linspace(H[0], H[1], num_h):
                     s.loc['height'] = h
-                    for l in np.arange(L[0], L[1], (L[1]-L[0])/num_L):
+                    for l in np.linspace(L[0], L[1], num_L):
                         s.loc['length'] = l
                         start = perf_counter()
                         alph = alpha(f,e,b,h,l)
@@ -80,4 +80,4 @@ def Gen_data(num_f,num_e,num_b,num_h,num_L,nodes, name ="output"):
     print(df)
 
 
-Gen_data(5,5,5,5,5,10,"outputV1.1")
+Gen_data(5,5,5,5,5,10,"outputV1.2")
