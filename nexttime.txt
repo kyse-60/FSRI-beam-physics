@@ -1,0 +1,19 @@
+- compare the time for very specifics
+- very good textbook ( "Dive into deep learning") in arxiv 
+    take a look at 2.5 --> automatic differentiation 
+    Half of 4.1-4.5 (if time do more)
+    I'm thinking we do this in two diff jupyter notebooks 
+    go back to read things if it refers to something you dont know before 
+- test points on domain --> colocation points
+    for us it would be random points on the graph
+- build a PDE loss using your physics formula
+- auto differentiation --> we know gradient of output with inputs and can use to find losses
+    gradient of ouput with weights and biases is used to update it it 
+    auto differentiation is very important
+- also include boundary information loss 
+    if its outside of the boundadries make a loss (boundaries are initial conditions)
+    - we just have bc (no initial conditions )
+- add some weights to all the losses
+- gaussian process is saying the more data you give it the more accurate we can guess the next value 
+    good for scarce data 
+- he will send some stuff for literature reviwe (3 paragraphs ish introduction) --> by end of this week 
