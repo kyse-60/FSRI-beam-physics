@@ -27,7 +27,8 @@ class NeuralNetwork(nn.Module): #1 input, 11 outputs
 
 model = NeuralNetwork()
 loss_function = nn.MSELoss()
-optimizer = optim.Adam(model.parameters(), lr=0.001)
+learning_rate = 0.001 #basically step size during each step in the training process
+optimizer = optim.Adam(model.parameters(), learning_rate)
 
 # TRAINING 
 num_epochs = 10 #100
