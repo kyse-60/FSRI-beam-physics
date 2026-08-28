@@ -78,4 +78,4 @@ def Gen_data(nodes,numiter, name ="output"):
     df.to_csv(name + "-time-" + str(bigtime) + "s.csv", index= False)
     print(df)
 
-Gen_data(10,100,"outputValpha(100).3")
+Gen_data(10,1000,"outputValpha(1000)")
