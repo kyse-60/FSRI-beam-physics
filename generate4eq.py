@@ -65,10 +65,15 @@ def Gen_data(num_f,num_e,num_b,num_h,num_L,nodes,name="output4eq"):
                         kL, solution = shoot(real_k0, length, force, elastic, inertia)
                         for index in range(nodes):
                             n = np.linspace(0,length,nodes)[index]
+
+                            phi = solution.sol(n)[0]
+                            k = solution.sol(n)[1]
                             x_coord = solution.sol(n)[2]
                             y_coord = solution.sol(n)[3]
                             coord = (float(x_coord), float(-1 * y_coord))
                             ser.loc['coord' + str(index)] = coord
+                            ser.loc['phi' + str(index)] = float(phi)
+                            ser.loc['k' + str(index)] = float(k)
                         end = perf_counter()
                         time_beam = end - start
                         ser.loc['time'] = time_beam
@@ -77,7 +82,7 @@ def Gen_data(num_f,num_e,num_b,num_h,num_L,nodes,name="output4eq"):
     bigtime = bigend - bigstart
     df.to_csv(name + "-time-" + str(bigtime) + "s.csv", index= False)
 
-Gen_data(5,5,5,5,5,10)
+Gen_data(3,3,3,3,3,200)
 
 
 
