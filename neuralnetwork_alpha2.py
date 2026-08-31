@@ -39,18 +39,6 @@ training_y = torch.tensor(y_coords[0:600], dtype=torch.float32)
 validation_y = torch.tensor(y_coords[600:900], dtype=torch.float32)
 test_y = torch.tensor(y_coords[900:1001], dtype=torch.float32)
 
-# Epoch 0: latest loss is 0.0008906425791792572, completed in 0.08s
-# Epoch 1: latest loss is 0.00012630947458092123, completed in 0.077s
-# Epoch 2: latest loss is 5.490777766681276e-05, completed in 0.077s
-# Epoch 3: latest loss is 3.8113528717076406e-05, completed in 0.079s
-# Epoch 4: latest loss is 2.2147150957607664e-05, completed in 0.085s
-# Epoch 5: latest loss is 1.5075408555276226e-05, completed in 0.075s
-# Epoch 6: latest loss is 1.3332289199752267e-05, completed in 0.08s
-# Epoch 7: latest loss is 1.3463485629472416e-05, completed in 0.114s
-# Epoch 8: latest loss is 1.1930874279642012e-05, completed in 0.078s
-# Epoch 9: latest loss is 8.554461601306684e-06, completed in 0.076s
-# Accuracy 0.09090909361839294
-
 class NeuralNetwork(nn.Module): #1 input, 11 outputs 
     def __init__(self):
         super().__init__()
