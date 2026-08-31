@@ -55,16 +55,18 @@ class NeuralNetwork(nn.Module): #1 input, 11 outputs
     def __init__(self):
         super().__init__()
 
-        self.network = nn.Sequential(
+        self.trunk = nn.Sequential(
             nn.Linear(1,32),
             nn.ReLU(),
             nn.Linear(32,32),
             nn.ReLU(),
-            nn.Linear(32,11)
         )
+        self.x_head = nn.Linear(32,11)
+        self.y_head = nn.Linear(32,11)
 
     def forward(self, x):
-        return self.network(x)
+        features = self.trunk(x)
+        return self.x_head(features), self.y_head(features)
 
 model = NeuralNetwork()
 loss_function = nn.MSELoss()
@@ -72,20 +74,19 @@ learning_rate = 0.001 #basically step size during each step in the training proc
 optimizer = optim.Adam(model.parameters(), learning_rate)
 
 # TRAINING 
-num_epochs = 100 #100
+num_epochs = 200 #100
 batch_size = 10  #10
 
 for epoch in range(num_epochs):
     start = perf_counter()
     for i in range(0, len(training_input), batch_size):
         inputbatch = training_input[i : i +batch_size]
-        y_pred = model(inputbatch)
+        x_pred, y_pred = model(inputbatch)
 
-
-        #xbatch = training_y[i: i +batch_size]
+        xbatch = training_y[i: i +batch_size]
         ybatch = training_y[i: i +batch_size]
 
-        loss = loss_function(y_pred, ybatch)
+        loss = loss_function(x_pred, xbatch) + loss_function(y_pred, ybatch)
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()
@@ -95,8 +96,9 @@ for epoch in range(num_epochs):
 
 #EVALUATING THE MODEL 
 with torch.no_grad():
-    validation_pred = model(validation_input) #validation tensor so we can evluate instead of the training dataset
+    x_pred, y_pred = model(validation_input) #validation tensor so we can evluate instead of the training dataset
 
-accuracy = (validation_pred.round() == validation_y).float().mean()
+accuracy = ((x_pred.round() == validation_x.round()).float().mean().item() + (y_pred.round() == validation_y.round()).float().mean().item())/2
+
 
 print(f'Accuracy {accuracy}')
