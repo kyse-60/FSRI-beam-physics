@@ -81,26 +81,18 @@ CASES= [10] #[1,2,3,4,6,8,10,20,30,40,50,60,70,80,90,100]
 SEEDS= [1]
 
 class NeuralNetwork(nn.Module):
-    def __init__(self, n_nodes = 128,n_layer = 5):
+    def __init__(self, n_hidden=128,n_layer = 5):
         super().__init__()
 
-        layers = [nn.Linear(2,n_nodes),
-                nn.Tanh(),]
+        layers = [nn.Linear(2,n_hidden), nn.Tanh()]
         for _ in range(n_layer - 2):
-            layers += [nn.Linear(2,n_nodes),
+            layers += [nn.Linear(n_hidden,n_hidden),
                     nn.Tanh(),]
-
-        self.input = nn.Sequential(
-            nn.Linear(2,n_nodes),
-            nn.ReLU(),
-            for _ in range(n_layer):  
-                nn.Linear(32,32),
-                nn.ReLU(),
-            nn.Linear(32,4)
-        )
+            layers += [nn.Linear(n_hidden,4)]
+            self.net = nn.Sequential(*layers)
 
     def forward(self,xipts,alphapts):
-        inputs = torch.cat([alphapts,xipts], dim = 1)
+        inputs = torch.stack([xipts,alphapts / lambda_scale], dim = 1)
         raw = self.input(inputs)
         xi = xipts[:, 0]
         x_pos = xi * raw[:,0]
