@@ -21,62 +21,61 @@ dataset = dataset.reindex(
     axis=1
 )
 
-# alpha_vals = dataset["alpha"]
-# # xi_vals = dataset["xi"]
-# phi_vals = []
+phi_vals = dataset.loc[:,"phi0":"phi199"].to_numpy()
+K_vals = dataset.loc[:, "k0":"k199"].to_numpy()
+xi_vals = np.linspace(0,1,199)
 
 coords = dataset.loc[:,"coord0":"coord199"]
-phi_vals = dataset.loc[:,"phi0":"phi199"]
-k_vals = dataset.loc[:, "k0":"k199"]
-xi_vals = np.linspace(0,1,199)
-print(xi_vals)
+x_coords = []
+y_coords = []
+alpha_vals = []
 
+for row in range(0,dataset.shape[0]):
+        alpha = (dataset.loc[row, "F"] * dataset.loc[row, "length"] * dataset.loc[row, "length"]) / (2 * dataset.loc[row, "E"] * (( dataset.loc[row, "base"] *  dataset.loc[row, "height"] **3)/ 12))
+        alpha_vals.append(alpha)
+        x_row = []
+        y_row = []
+        for item in range(0,200):
+            point = coords.iloc[row,item]
+            point = point = point.strip("()")
+            x, y = point.split(",")
+            x_row.append(float(x))
+            y_row.append(float(y))
+        x_coords.append(x_row)
+        y_coords.append(y_row)
 
-# x_coords = []
-# y_coords = []
+#the split for our 243 rows is 6/2/1, or 162/54/27
+#alphas
+training_alpha = torch.tensor(alpha_vals[0:162], dtype=torch.float32).reshape(-1, 1)
+validation_alpha = torch.tensor(alpha_vals[162:216], dtype=torch.float32).reshape(-1, 1)
+test_alpha = torch.tensor(alpha_vals[216:243], dtype=torch.float32).reshape(-1, 1)
 
-# for row in range(0,dataset.shape[0]):
-#         x_row = []
-#         y_row = []
-#         for item in range(0,200):
-#             point = coords.iloc[row,item]
-#             point = point = point.strip("()")
-#             x, y = point.split(",")
-#             x_row.append(float(x))
-#             y_row.append(float(y))
-#         x_coords.append(x_row)
-#         y_coords.append(y_row)
+#xis
+training_xis = torch.tensor(xi_vals[0:162], dtype=torch.float32).reshape(-1, 1)
+validation_xis = torch.tensor(xi_vals[162:216], dtype=torch.float32).reshape(-1, 1)
+test_xis = torch.tensor(xi_vals[216:243], dtype=torch.float32).reshape(-1, 1)
 
-# #alphas
-# training_alpha = torch.tensor(alpha_vals.loc[0:599].to_numpy(), dtype=torch.float32).reshape(-1, 1)
-# validation_alpha = torch.tensor(alpha_vals.loc[600:899].to_numpy(), dtype=torch.float32).reshape(-1, 1)
-# test_alpha = torch.tensor(alpha_vals.loc[900:1000].to_numpy(), dtype=torch.float32).reshape(-1, 1)
+#phis 
+training_phi = torch.tensor(phi_vals[0:162], dtype=torch.float32)
+validation_phi = torch.tensor(phi_vals[162:216], dtype=torch.float32)
+test_phi = torch.tensor(phi_vals[216:243], dtype=torch.float32)
 
-# #xis
-# training_xis = torch.tensor(xi_vals.loc[0:599].to_numpy(), dtype=torch.float32).reshape(-1, 1)
-# validation_xis = torch.tensor(xi_vals.loc[600:899].to_numpy(), dtype=torch.float32).reshape(-1, 1)
-# test_xis = torch.tensor(xi_vals.loc[900:1000].to_numpy(), dtype=torch.float32).reshape(-1, 1)
+#K
+training_k = torch.tensor(K_vals[0:162], dtype=torch.float32)
+validation_k = torch.tensor(K_vals[162:216], dtype=torch.float32)
+test_k = torch.tensor(K_vals[216:243], dtype=torch.float32)
 
-# #phis 
-# training_phi = torch.tensor(phi_vals[0:600], dtype=torch.float32)
-# validation_phi = torch.tensor(phi_vals[600:900], dtype=torch.float32)
-# test_phi = torch.tensor(phi_vals[900:1001], dtype=torch.float32)
+#x
+training_x = torch.tensor(x_coords[0:162], dtype=torch.float32)
+validation_x = torch.tensor(x_coords[162:216], dtype=torch.float32)
+test_x = torch.tensor(x_coords[216:243], dtype=torch.float32)
 
-# #K
-# training_k = torch.tensor(K_vals[0:600], dtype=torch.float32)
-# validation_k = torch.tensor(K_vals[600:900], dtype=torch.float32)
-# test_k = torch.tensor(K_vals[900:1001], dtype=torch.float32)
+#y
+training_y = torch.tensor(y_coords[0:162], dtype=torch.float32)
+validation_y = torch.tensor(y_coords[162:216], dtype=torch.float32)
+test_y = torch.tensor(y_coords[216:243], dtype=torch.float32)
 
-# #x
-# training_x = torch.tensor(x_coords[0:600], dtype=torch.float32)
-# validation_x = torch.tensor(x_coords[600:900], dtype=torch.float32)
-# test_x = torch.tensor(x_coords[900:1001], dtype=torch.float32)
-
-# #y
-# training_y = torch.tensor(y_coords[0:600], dtype=torch.float32)
-# validation_y = torch.tensor(y_coords[600:900], dtype=torch.float32)
-# test_y = torch.tensor(y_coords[900:1001], dtype=torch.float32)
-
+print(training_y[0])
 # class NeuralNetwork(nn.Module): #2 input, 11 outputs 
 #     def __init__(self):
 #         super().__init__()
