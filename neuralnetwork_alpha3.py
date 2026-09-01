@@ -27,6 +27,21 @@ for row in range(0,coords.shape[0]):
             y_row.append(float(y))
         x_coords.append(x_row)
         y_coords.append(y_row)
+# train for 1,2,3,4,5,..10,20,40,60,80,100 and record it (each one has 200 inside it because its 200 points correspponding to the alphas )
+# should record the MSE and accuracy for each test 
+# plot the graph MSE v samples
+#this is a hard constraint (put in poster) or boundary embedded 
+
+#for the bounds --> we know x(0) = y(0) = phi(0) = K(1) = 0
+# whatever the network gives me multiply by xi 
+'''
+(x)(xi) = x
+(y)(xi) = y
+...
+
+
+'''
+
 
 #alphas
 training_alpha = torch.tensor(alpha_vals.loc[0:599].to_numpy(), dtype=torch.float32).reshape(-1, 1)
@@ -58,6 +73,8 @@ training_y = torch.tensor(y_coords[0:600], dtype=torch.float32)
 validation_y = torch.tensor(y_coords[600:900], dtype=torch.float32)
 test_y = torch.tensor(y_coords[900:1001], dtype=torch.float32)
 
+validation_output = [validation_x, validation_y, validation_phi, validation_k]
+
 class NeuralNetwork(nn.Module): #2 input, 11 outputs 
     def __init__(self):
         super().__init__()
@@ -67,15 +84,15 @@ class NeuralNetwork(nn.Module): #2 input, 11 outputs
             nn.ReLU(),
             nn.Linear(32,32),
             nn.ReLU(),
+            nn.Linear(32,4)
         )
-        self.x_head = nn.Linear(32,1)
-        self.y_head = nn.Linear(32,1)
-        self.phi = nn.Linear(32,1)
-        self.K_val = nn.Linear(32,1) 
+        # self.x_head = nn.Linear(32,1)
+        # self.y_head = nn.Linear(32,1)
+        # self.phi = nn.Linear(32,1)
+        # self.K_val = nn.Linear(32,1) 
 
     def forward(self, x):
-        features = self.trunk(x)
-        return self.x_head(features), self.y_head(features)
+        return self.trunk(x) #x,y,phi,k
 
 model = NeuralNetwork()
 loss_function = nn.MSELoss()
@@ -85,6 +102,13 @@ optimizer = optim.Adam(model.parameters(), learning_rate)
 # TRAINING 
 num_epochs = 200 #100
 batch_size = 10  #10
+
+def accuracy(predict, truth):
+    accuracy = ((predict[0].round() == truth[0].round()).float().mean().item() 
+            + (predict[1].round() == truth[1].round()).float().mean().item()
+            +(predict[2].round() == truth[2].round()).float().mean().item()
+            + (predict[3].round() == truth[3].round()).float().mean().item())/4
+    return accuracy
 
 for epoch in range(num_epochs):
     start = perf_counter()
@@ -107,17 +131,18 @@ for epoch in range(num_epochs):
         optimizer.step()
     end = perf_counter()
     epochtime = round(end-start, 3)
-    print(f'Epoch {epoch}: latest loss is {loss}, completed in {epochtime}s')
+    #calculatingaccuracy
+    with torch.no_grad():
+        validation_input = torch.cat([validation_alpha, validation_xis], dim =1)
+        predicted = model(validation_input) 
+        acc = accuracy(predicted,validation_output)
+    print(f'Epoch {epoch}: latest loss is {loss}, completed in {epochtime}s, accuracy {acc}')
 
-#EVALUATING THE MODEL 
+#EVALUATING THE MODEL
+
 with torch.no_grad():
     validation_input = torch.cat([validation_alpha, validation_xis], dim =1)
-    x_pred, y_pred, phi_pred, k_pred = model(validation_input) #validation tensor so we can evluate instead of the training dataset
-
-accuracy = ((x_pred.round() == validation_x.round()).float().mean().item() 
-            + (y_pred.round() == validation_y.round()).float().mean().item()
-            +(phi_pred.round() == validation_phi.round()).float().mean().item()
-            + (k_pred.round() == validation_k.round()).float().mean().item())/4
-
+    predicted = model(validation_input) 
+    acc = accuracy(predicted,validation_output)
 
 print(f'Accuracy {accuracy}')
