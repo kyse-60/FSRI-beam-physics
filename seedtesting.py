@@ -78,11 +78,12 @@ test_y = torch.tensor(y_coords[216:243], dtype=torch.float32).flatten()
 
 validation_output = [validation_x, validation_y, validation_phi, validation_k]
 CASES= [10] #[1,2,3,4,6,8,10,20,30,40,50,60,70,80,90,100]
-SEEDS= [1]
+SEEDS= [1,2,3]
 
 class NeuralNetwork(nn.Module):
     def __init__(self, n_hidden=128,n_layer = 5):
         super().__init__()
+
 
         layers = [nn.Linear(2,n_hidden), nn.Tanh()]
         for _ in range(n_layer - 2):
@@ -90,6 +91,7 @@ class NeuralNetwork(nn.Module):
                     nn.Tanh(),]
         layers += [nn.Linear(n_hidden,4)]
         self.net = nn.Sequential(*layers)
+
 
     def forward(self,xipts,alphapts):
         inputs = torch.cat([xipts,alphapts / 1], dim = 1)
@@ -120,8 +122,9 @@ def accuracy(predict, truth):
 df = pd.DataFrame()
 
 for CASE in CASES:
-    for x in SEEDS:
-        torch.manual_seed(x)
+    seed_errors = []
+    for seed in SEEDS:
+        torch.manual_seed(seed)
         model = NeuralNetwork()
         optimizer = optim.Adam(model.parameters(), learning_rate)
         #slicing it
@@ -153,24 +156,11 @@ for CASE in CASES:
                 optimizer.zero_grad()
                 loss.backward()
                 optimizer.step()
-            #recording data 
-            with torch.no_grad():
-                predicted_v = model(validation_xis, validation_alpha) 
-                val_mse_v = loss_function(predicted_v, torch.stack([validation_x, validation_y, validation_phi, validation_k], dim=1)).item() 
-            with torch.no_grad():
-                predicted_t = model(training_xis, training_alpha) 
-                val_mse_t = loss_function(predicted_t, torch.stack([training_x, training_y, training_phi, training_k], dim=1)).item()   
-            print(f"done with epoch {epoch}") 
-            df = pd.concat([df,pd.DataFrame([{'Epoch': epoch, 'MSEvalidation': val_mse_v, 'MSEtraining': val_mse_t,}])], ignore_index=True)
-            
-        # end = perf_counter()
-        # traintime = round(end-start, 3)
-        # with torch.no_grad():
-            # validation_input = torch.cat([validation_alpha, validation_xis], dim =1)
-            # predicted = model(validation_alpha, validation_xis) 
-            # val_mse = loss_function(predicted, torch.stack([validation_x, validation_y, validation_phi, validation_k], dim=1)).item() 
-            # acc = accuracy(predicted.unbind(dim=1), validation_output)
-        # print(f'Case number {CASE} is done!')
-        # df = pd.concat([df, pd.DataFrame([{'CASE': CASE,'MSE-loss': val_mse,'accuracy': acc,'traintime': traintime,}])], ignore_index=True)
+        with torch.no_grad():
+            validation_input = torch.cat([validation_xis, validation_alpha], dim =1)
+            predicted = model(validation_xis, validation_alpha) 
+            val_mse = loss_function(predicted, torch.stack([validation_x, validation_y, validation_phi, validation_k], dim=1)).item() 
+        print(f'seed {seed} is done')
+        seed_errors.append(val_mse)
 
-df.to_csv("MSEperepoch.csv", index= False)
+print(f'SEED1:{seed_errors[0]}, SEED2:{seed_errors[1]}, SEED3:{seed_errors[2]}')
