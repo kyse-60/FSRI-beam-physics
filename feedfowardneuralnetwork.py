@@ -45,21 +45,6 @@ for row in range(0,dataset.shape[0]):
         x_coords.append(x_row)
         y_coords.append(y_row)
 K_vals = K_vals * dataset["length"].to_numpy().reshape(-1, 1) 
-# train for 1,2,3,4,5,..10,20,40,60,80,100 and record it (each one has 200 inside it because its 200 points correspponding to the alphas )
-# should record the MSE and accuracy for each test 
-# plot the graph MSE v samples
-#this is a hard constraint (put in poster) or boundary embedded 
-
-#for the bounds --> we know x(0) = y(0) = phi(0) = K(1) = 0
-# whatever the network gives me multiply by xi 
-'''
-(x)(xi) = x
-(y)(xi) = y
-...
-
-
-'''
-
 
 #the split for our 243 rows is 6/2/1, or 162/54/27
 #alphas                                                     
@@ -92,25 +77,36 @@ validation_y = torch.tensor(y_coords[162:216], dtype=torch.float32).flatten()
 test_y = torch.tensor(y_coords[216:243], dtype=torch.float32).flatten()
 
 validation_output = [validation_x, validation_y, validation_phi, validation_k]
+CASES= [1,2,3,4,6,8,10,20,30,40,50,60,70,80,90,100]
 
-class NeuralNetwork(nn.Module): #2 input, 11 outputs 
-    def __init__(self):
+class NeuralNetwork(nn.Module):
+    def __init__(self, n_nodes = 128,n_layer = 5):
         super().__init__()
 
-        self.trunk = nn.Sequential(
-            nn.Linear(2,32),
+        layers = [nn.Linear(2,n_nodes),
+                nn.Tanh(),]
+        for _ in range(n_layer - 2):
+            layers += [nn.Linear(2,n_nodes),
+                    nn.Tanh(),]
+
+        self.input = nn.Sequential(
+            nn.Linear(2,n_nodes),
             nn.ReLU(),
-            nn.Linear(32,32),
-            nn.ReLU(),
+            for _ in range(n_layer):  
+                nn.Linear(32,32),
+                nn.ReLU(),
             nn.Linear(32,4)
         )
-        # self.x_head = nn.Linear(32,1)
-        # self.y_head = nn.Linear(32,1)
-        # self.phi = nn.Linear(32,1)
-        # self.K_val = nn.Linear(32,1) 
 
-    def forward(self, x):
-        return self.trunk(x) #x,y,phi,k
+    def forward(self,xipts,alphapts):
+        inputs = torch.cat([alphapts,xipts], dim = 1)
+        raw = self.input(inputs)
+        xi = xipts[:, 0]
+        x_pos = xi * raw[:,0]
+        y_pos = xi * raw[:,1]
+        phi = xi * raw[:,2]
+        k = (1-xi) * raw[:,3]
+        return torch.stack([x_pos,y_pos,phi,k], dim = 1)
 
 model = NeuralNetwork()
 loss_function = nn.MSELoss()
@@ -128,40 +124,56 @@ def accuracy(predict, truth):
             + (predict[3].round() == truth[3].round()).float().mean().item())/4
     return accuracy
 
-for epoch in range(num_epochs):
+df = pd.DataFrame()
+
+for CASE in CASES:
+    #reinit
+    model = NeuralNetwork()
+    optimizer = optim.Adam(model.parameters(), learning_rate)
+    #slicing it
+    num = CASE * 200
+    case_alpha = training_alpha[0:num]
+    case_xis = training_xis[0:num]
+    case_x = training_x[0:num]
+    case_y = training_y[0:num]
+    case_phi = training_phi[0:num]
+    case_k = training_k[0:num]
+    #train the model:
     start = perf_counter()
-    for i in range(0, len(training_alpha), batch_size):
-        alpha_batch = training_alpha[i : i +batch_size]
-        xi_batch = training_xis[i : i +batch_size]
+    for epoch in range(num_epochs):
+        for i in range(0, len(case_alpha), batch_size):
+            alpha_batch = case_alpha[i : i +batch_size]
+            xi_batch = case_xis[i : i +batch_size]
 
-        inputbatch = torch.cat([alpha_batch, xi_batch], dim =1)
-        pred = model(inputbatch) 
-        x_pred, y_pred, phi_pred, k_pred = pred.unbind(dim=1)
+            # inputbatch = torch.cat([alpha_batch, xi_batch], dim =1)
+            pred = model(xi_batch,alpha_batch) 
+            x_pred, y_pred, phi_pred, k_pred = pred.unbind(dim=1)
 
-        xbatch = training_x[i: i +batch_size]
-        ybatch = training_y[i: i +batch_size]
-        phibatch = training_phi[i: i +batch_size]
-        kbatch = training_k[i: i +batch_size]
+            xbatch = case_x[i: i +batch_size]
+            ybatch = case_y[i: i +batch_size]
+            phibatch = case_phi[i: i +batch_size]
+            kbatch = case_k[i: i +batch_size]
 
-        loss = loss_function(x_pred, xbatch) + loss_function(y_pred, ybatch) + loss_function(phi_pred, phibatch)+ loss_function(k_pred, kbatch)
+            loss = loss_function(x_pred, xbatch) + loss_function(y_pred, ybatch) + loss_function(phi_pred, phibatch)+ loss_function(k_pred, kbatch)
 
-        optimizer.zero_grad()
-        loss.backward()
-        optimizer.step()
+            optimizer.zero_grad()
+            loss.backward()
+            optimizer.step()
+        #calculatingaccuracy
+        # with torch.no_grad():
+            # validation_input = torch.cat([validation_alpha, validation_xis], dim =1)
+            # predicted = model(validation_input) 
+            # val_mse = loss_function(predicted, torch.stack([validation_x, validation_y, validation_phi, validation_k], dim=1)).item() 
+        # print(f'Epoch {epoch}: latest loss is {loss}, completed in {epochtime}s, val MSE {val_mse}')
+    #evaluate its accuracy on a larger dataset
     end = perf_counter()
-    epochtime = round(end-start, 3)
-    #calculatingaccuracy
+    traintime = round(end-start, 3)
     with torch.no_grad():
-        validation_input = torch.cat([validation_alpha, validation_xis], dim =1)
-        predicted = model(validation_input) 
-        val_mse = loss_function(predicted, torch.stack([validation_x, validation_y, validation_phi, validation_k], dim=1)).item()
-    print(f'Epoch {epoch}: latest loss is {loss}, completed in {epochtime}s, val MSE {val_mse}')
+        # validation_input = torch.cat([validation_alpha, validation_xis], dim =1)
+        predicted = model(validation_alpha, validation_xis) 
+        val_mse = loss_function(predicted, torch.stack([validation_x, validation_y, validation_phi, validation_k], dim=1)).item() 
+        acc = accuracy(predicted.unbind(dim=1), validation_output)
+    print(f'Case number {CASE} is done!')
+    df = pd.concat([df, pd.DataFrame([{'CASE': CASE,'MSE-loss': val_mse,'accuracy': acc,'traintime': traintime,}])], ignore_index=True)
 
-#EVALUATING THE MODEL
-
-with torch.no_grad():
-    validation_input = torch.cat([validation_alpha, validation_xis], dim =1)
-    predicted = model(validation_input) 
-    val_mse = loss_function(predicted, torch.stack([validation_x, validation_y, validation_phi, validation_k], dim=1)).item()
-
-print(f'Validation MSE {val_mse}')
+df.to_csv("CaseIterationWBOUND.csv", index= False)
