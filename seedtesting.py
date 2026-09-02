@@ -1,3 +1,7 @@
+#SEED1:0.0024741862434893847, 
+# #SEED2:0.0028797192499041557, 
+# #SEED3:0.0009118516463786364
+
 import pandas as pd
 import numpy as np
 import torch
@@ -46,12 +50,9 @@ for row in range(0,dataset.shape[0]):
         y_coords.append(y_row)
 K_vals = K_vals * dataset["length"].to_numpy().reshape(-1, 1) 
 
-
-device = torch.device("cuda" if torch.cud.is_avaliable() else "cpu")
-
 #the split for our 243 rows is 6/2/1, or 162/54/27
 #alphas                                                     
-training_alpha = torch.tensor(np.repeat(alpha_vals[0:162], 200), dtype=torch.float32,device = device).reshape(-1, 1)
+training_alpha = torch.tensor(np.repeat(alpha_vals[0:162], 200), dtype=torch.float32).reshape(-1, 1)
 validation_alpha = torch.tensor(np.repeat(alpha_vals[162:216], 200), dtype=torch.float32).reshape(-1, 1)
 test_alpha = torch.tensor(np.repeat(alpha_vals[216:243], 200), dtype=torch.float32).reshape(-1, 1)
 
@@ -81,11 +82,12 @@ test_y = torch.tensor(y_coords[216:243], dtype=torch.float32).flatten()
 
 validation_output = [validation_x, validation_y, validation_phi, validation_k]
 CASES= [10] #[1,2,3,4,6,8,10,20,30,40,50,60,70,80,90,100]
-SEEDS= [1]
+SEEDS= [1,2,3]
 
 class NeuralNetwork(nn.Module):
-    def __init__(self, n_hidden=64,n_layer = 4): #128 and 5 is what it was before
+    def __init__(self, n_hidden=128,n_layer = 5):
         super().__init__()
+
 
         layers = [nn.Linear(2,n_hidden), nn.Tanh()]
         for _ in range(n_layer - 2):
@@ -93,6 +95,7 @@ class NeuralNetwork(nn.Module):
                     nn.Tanh(),]
         layers += [nn.Linear(n_hidden,4)]
         self.net = nn.Sequential(*layers)
+
 
     def forward(self,xipts,alphapts):
         inputs = torch.cat([xipts,alphapts / 1], dim = 1)
@@ -104,17 +107,13 @@ class NeuralNetwork(nn.Module):
         k = (1-xi) * raw[:,3]
         return torch.stack([x_pos,y_pos,phi,k], dim = 1)
 
-#when our model has 0 data it should only use physics
-# run it for 0 data, 5, 10,20,30,50,100
-
-
 model = NeuralNetwork()
-loss_function = nn.MSELoss() 
+loss_function = nn.MSELoss()
 learning_rate = 0.0001 #basically step size during each step in the training process
 optimizer = optim.Adam(model.parameters(), learning_rate)
 # 
 # TRAINING 
-num_epochs = 300 #100
+num_epochs = 200 #100
 batch_size = 10  #10     
 
 def accuracy(predict, truth):
@@ -127,11 +126,10 @@ def accuracy(predict, truth):
 df = pd.DataFrame()
 
 for CASE in CASES:
-    seed_MSE=[]
-    seed_acc = []
-    for x in SEEDS:
-        torch.manual_seed(x)
-        model = NeuralNetwork().to(device)
+    seed_errors = []
+    for seed in SEEDS:
+        torch.manual_seed(seed)
+        model = NeuralNetwork()
         optimizer = optim.Adam(model.parameters(), learning_rate)
         #slicing it
         num = CASE * 200
@@ -162,30 +160,11 @@ for CASE in CASES:
                 optimizer.zero_grad()
                 loss.backward()
                 optimizer.step()
-            #recording data 
-            with torch.no_grad():
-                predicted_v = model(case_xis, case_alpha) 
-                val_mse_v = loss_function(predicted_v, torch.stack([case_x, case_y, case_phi, case_k], dim=1)).item() 
-            with torch.no_grad():
-                predicted_t = model(training_xis, training_alpha) 
-                val_mse_t = loss_function(predicted_t, torch.stack([training_x, training_y, training_phi, training_k], dim=1)).item()   
-            print(f"done with epoch {epoch}") 
-            df = pd.concat([df,pd.DataFrame([{'Epoch': epoch, 'MSEvalidation': val_mse_v, 'MSEtraining': val_mse_t,}])], ignore_index=True)
-            
-        # end = perf_counter()
-        # traintime = round(end-start, 3)
-        # with torch.no_grad():
-            # validation_input = torch.cat([validation_alpha, validation_xis], dim =1)
-            # predicted = model(validation_alpha, validation_xis) 
-            # val_mse = loss_function(predicted, torch.stack([validation_x, validation_y, validation_phi, validation_k], dim=1)).item() 
-            # acc = accuracy(predicted.unbind(dim=1), validation_output)
-            # seed_MSE.append(val_mse)
-            # seed_acc.append(acc)
-        # print(f'Case number {CASE} for seed {seed} is done!')
-    # MSE-loss = np.mean(seed_MSE)
-    # Accuracy = np.mean(seed_acc)
-    # df = pd.concat([df, pd.DataFrame([{'CASE': CASE,'MSE-loss': MSE-loss,'accuracy': Accuracy,'traintime': traintime,}])], ignore_index=True)
+        with torch.no_grad():
+            validation_input = torch.cat([validation_xis, validation_alpha], dim =1)
+            predicted = model(validation_xis, validation_alpha) 
+            val_mse = loss_function(predicted, torch.stack([validation_x, validation_y, validation_phi, validation_k], dim=1)).item() 
+        print(f'seed {seed} is done')
+        seed_errors.append(val_mse)
 
-df.to_csv(f"MSEperepochepochs{num_epochs}.csv", index= False)
-
-# df.to_csv(f"averagedpercases.csv", index= False)
+print(f'SEED1:{seed_errors[0]}, SEED2:{seed_errors[1]}, SEED3:{seed_errors[2]}')
